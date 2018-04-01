@@ -1,0 +1,9 @@
+// Configure repositories for all projects
+gradle.beforeProject { p ->
+    p.repositories {
+        jcenter()
+    }
+}
+
+include ':air-java'
+

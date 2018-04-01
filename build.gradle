@@ -1,0 +1,11 @@
+plugins {
+    id 'com.zyxist.chainsaw' version '0.3.1' apply false
+    id 'idea'
+}
+
+subprojects {
+    apply plugin: 'idea'
+    apply plugin: 'java-library'
+    apply plugin: 'com.zyxist.chainsaw'
+}
+
