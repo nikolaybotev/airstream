@@ -1,4 +1,4 @@
 dependencies {
     api 'com.google.code.gson:gson:2.8.2'
+    api 'com.google.guava:guava:24.1-jre'
 }
-
