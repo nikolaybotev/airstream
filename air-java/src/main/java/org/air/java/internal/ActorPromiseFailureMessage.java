@@ -4,15 +4,17 @@ import org.air.java.Resolver;
 
 import java.util.function.Function;
 
+import static java.util.Objects.requireNonNull;
+
 public class ActorPromiseFailureMessage<V> implements ActorMessage {
     private final Resolver<V> resolver;
     private final Function<Throwable, V> handler;
     private final Throwable exception;
 
     public ActorPromiseFailureMessage(Resolver<V> resolver, Function<Throwable, V> handler, Throwable exception) {
-        this.resolver = resolver;
-        this.handler = handler;
-        this.exception = exception;
+        this.resolver = requireNonNull(resolver);
+        this.handler = requireNonNull(handler);
+        this.exception = requireNonNull(exception);
     }
 
     @Override

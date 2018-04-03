@@ -1,13 +1,15 @@
 package org.air.java;
 
+import javax.annotation.Nullable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public interface Promise<T> {
-    <V> Promise<V> then(Function<? super T, ? extends V> consumer, Function<Throwable, ? extends V> errorHandler);
+    <V> Promise<V> then(@Nullable Function<? super T, ? extends V> consumer,
+                        @Nullable Function<Throwable, ? extends V> errorHandler);
 
-    <V> Promise<V> then(PromiseFunction<? super T, ? extends V> consumer,
-                        PromiseFunction<Throwable, ? extends V> errorHandler);
+    <V> Promise<V> then(@Nullable PromiseFunction<? super T, ? extends V> consumer,
+                        @Nullable PromiseFunction<Throwable, ? extends V> errorHandler);
 
     default void then(Consumer<? super T> consumer) {
         then((Function<T, Void>) result -> { consumer.accept(result); return null; }, null);

@@ -19,7 +19,7 @@ public class InternalActorContext {
         return currentActorSystem.get();
     }
 
-    public Actor getCurreActor() {
+    public Actor getCurrentActor() {
         return currentActor.get();
     }
 
