@@ -8,16 +8,18 @@ import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
 
-public class ActorReflectiveInvocationMessage implements ActorMessage {
-    private final Resolver<Object> resolver;
-    private final Supplier<Object> target;
+public class ActorReflectiveInvocationMessage<T> extends AbstractActorMessage {
+    private final Resolver<T> resolver;
+    private final Supplier<?> target;
     private final Method method;
     private final Object[] arguments;
 
-    public ActorReflectiveInvocationMessage(Resolver<Object> resolver,
-                                            Supplier<Object> target,
+    public ActorReflectiveInvocationMessage(Actor actor,
+                                            Resolver<T> resolver,
+                                            Supplier<?> target,
                                             Method method,
                                             Object[] arguments) {
+        super(actor);
         this.resolver = requireNonNull(resolver);
         this.target = requireNonNull(target);
         this.method = requireNonNull(method);
@@ -26,9 +28,10 @@ public class ActorReflectiveInvocationMessage implements ActorMessage {
 
     @Override
     public void handle() {
-        Object result;
+        T result;
         try {
-            result = method.invoke(target.get(), arguments);
+            //noinspection unchecked
+            result = (T) method.invoke(target.get(), arguments);
         } catch (InvocationTargetException e) {
             resolver.fail(e.getTargetException());
             return;

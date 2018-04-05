@@ -7,7 +7,11 @@ import java.util.function.Supplier;
 
 public interface ActorSystem {
     void start(Runnable main);
+
     <T> T newActor(Class<T> clazz, Supplier<T> factory);
+
+    <T> Future<T> newFuture();
+
     void shutdown();
 
     default <T> T newActor(Class<T> clazz) throws NoSuchMethodException, IllegalAccessException {

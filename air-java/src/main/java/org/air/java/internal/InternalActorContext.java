@@ -4,8 +4,7 @@ import org.air.java.ActorSystem;
 
 public class InternalActorContext {
     private static final InternalActorContext instance = new InternalActorContext();
-
-    public static InternalActorContext getInstance() {
+        public static InternalActorContext getInstance() {
         return instance;
     }
 

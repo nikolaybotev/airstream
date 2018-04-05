@@ -7,12 +7,16 @@ import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
 
-public class ActorPromiseResolutionMessage<T, V> implements ActorMessage {
+public class ActorPromiseResolutionMessage<T, V> extends AbstractActorMessage {
     private final Resolver<V> resolver;
     private final Function<T, V> handler;
     private final T resolution;
 
-    public ActorPromiseResolutionMessage(Resolver<V> resolver, Function<T, V> handler, @Nullable T resolution) {
+    public ActorPromiseResolutionMessage(Actor actor,
+                                         Resolver<V> resolver,
+                                         Function<T, V> handler,
+                                         @Nullable T resolution) {
+        super(actor);
         this.resolver = requireNonNull(resolver);
         this.handler = requireNonNull(handler);
         this.resolution = resolution;
