@@ -23,7 +23,7 @@ public class ActorHost implements Runnable {
 
     public ActorHost(BlockingQueue<ActorMessage> queue) {
         this.queue = requireNonNull(queue);
-        this.messageConsumer = queue::offer;
+        this.messageConsumer = queue::add;
     }
 
     public Consumer<ActorMessage> getMessageConsumer() {
