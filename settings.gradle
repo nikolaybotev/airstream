@@ -6,4 +6,5 @@ gradle.beforeProject { p ->
 }
 
 include ':air-java'
+include ':air-kotlin'
 
