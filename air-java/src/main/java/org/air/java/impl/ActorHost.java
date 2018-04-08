@@ -5,7 +5,6 @@ import org.air.java.internal.ActorExitException;
 import org.air.java.internal.ActorMessage;
 
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
 import static java.util.Objects.requireNonNull;

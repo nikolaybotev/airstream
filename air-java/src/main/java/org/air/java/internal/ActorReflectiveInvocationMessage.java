@@ -33,10 +33,10 @@ public class ActorReflectiveInvocationMessage<T> extends AbstractActorMessage {
             //noinspection unchecked
             result = (T) method.invoke(target.get(), arguments);
         } catch (InvocationTargetException e) {
-            resolver.fail(e.getTargetException());
+            resolver.reject(e.getTargetException());
             return;
         } catch (Exception e) {
-            resolver.fail(e);
+            resolver.reject(e);
             return;
         }
         resolver.resolve(result);

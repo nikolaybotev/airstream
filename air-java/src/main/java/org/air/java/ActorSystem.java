@@ -12,6 +12,10 @@ public interface ActorSystem {
 
     <T> Future<T> newFuture();
 
+    <T> Promise<T> resolved(T resolution);
+
+    <T> Promise<T> rejected(Throwable reason);
+
     void shutdown();
 
     default <T> T newActor(Class<T> clazz) throws NoSuchMethodException, IllegalAccessException {

@@ -26,7 +26,7 @@ public class ActorRemoteRefCglib<T> {
         }
 
         @Override
-        public void fail(Throwable error) {
+        public void reject(Throwable error) {
         }
     };
 

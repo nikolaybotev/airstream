@@ -3,6 +3,7 @@ package org.air.java.impl;
 import com.google.common.collect.ImmutableList;
 import org.air.java.ActorSystem;
 import org.air.java.Future;
+import org.air.java.Promise;
 import org.air.java.internal.Actor;
 import org.air.java.internal.ActorBootstrapMessage;
 import org.air.java.internal.ActorCreationMessage;
@@ -83,6 +84,18 @@ public class ActorSystemImpl implements InternalActorSystem {
     @Override
     public <T> Future<T> newFuture() {
         // TODO create new future
+        return null;
+    }
+
+    @Override
+    public <T> Promise<T> resolved(T resolution) {
+        // TODO create resolved promise
+        return null;
+    }
+
+    @Override
+    public <T> Promise<T> rejected(Throwable reason) {
+        // TODO create rejected promise
         return null;
     }
 

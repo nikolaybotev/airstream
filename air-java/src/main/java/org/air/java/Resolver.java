@@ -5,5 +5,5 @@ public interface Resolver<T> {
 
     void resolve(Promise<? extends T> promise);
 
-    void fail(Throwable error);
+    void reject(Throwable error);
 }

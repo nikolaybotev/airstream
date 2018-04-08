@@ -27,7 +27,7 @@ public class ActorPromiseFailureMessage<V> extends AbstractActorMessage {
         try {
             result = handler.apply(exception);
         } catch (Throwable t) {
-            resolver.fail(t);
+            resolver.reject(t);
             return;
         }
         resolver.resolve(result);
