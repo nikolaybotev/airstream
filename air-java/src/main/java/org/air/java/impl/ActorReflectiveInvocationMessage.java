@@ -1,6 +1,8 @@
-package org.air.java.internal;
+package org.air.java.impl;
 
 import org.air.java.Resolver;
+import org.air.java.internal.AbstractActorMessage;
+import org.air.java.internal.Actor;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

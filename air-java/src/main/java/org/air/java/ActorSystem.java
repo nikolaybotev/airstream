@@ -1,22 +1,28 @@
 package org.air.java;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.time.Duration;
 import java.util.function.Supplier;
 
 public interface ActorSystem {
+    String getName();
+
     void start(Runnable main);
 
     <T> T newActor(Class<T> clazz, Supplier<T> factory);
 
     <T> Future<T> newFuture();
 
-    <T> Promise<T> resolved(T resolution);
+    <T> Promise<T> resolved(@Nullable T resolution);
 
     <T> Promise<T> rejected(Throwable reason);
 
     void shutdown();
+
+    void awaitTermination(Duration duration) throws InterruptedException;
 
     default <T> T newActor(Class<T> clazz) throws NoSuchMethodException, IllegalAccessException {
         Constructor<T> defaultConstructor = clazz.getDeclaredConstructor();

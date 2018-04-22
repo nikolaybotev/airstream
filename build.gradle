@@ -8,12 +8,6 @@ subprojects {
     apply plugin: 'idea'
     apply plugin: 'java-library'
     apply plugin: 'com.zyxist.chainsaw'
-    apply plugin: 'org.jetbrains.kotlin.jvm'
-
-    // As per https://stackoverflow.com/a/47669720
-    // See also https://discuss.kotlinlang.org/t/kotlin-support-for-java-9-module-system/2499/9
-    compileKotlin.destinationDir = compileJava.destinationDir
-    jar.duplicatesStrategy = "exclude"
 }
 
 idea {

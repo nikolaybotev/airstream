@@ -5,6 +5,6 @@ module org.airstream.airjava {
     requires com.google.common;
     requires gson;
     requires jsr305;
-    requires java.base;
     requires org.objectweb.asm;
+    requires java.base;
 }

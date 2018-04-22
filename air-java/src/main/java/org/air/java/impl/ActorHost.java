@@ -5,6 +5,7 @@ import org.air.java.internal.ActorExitException;
 import org.air.java.internal.ActorMessage;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
 import static java.util.Objects.requireNonNull;
@@ -17,11 +18,13 @@ public class ActorHost implements Runnable {
     }
 
     private final BlockingQueue<ActorMessage> queue;
+    private final CountDownLatch terminationLatch;
     private final Consumer<ActorMessage> messageConsumer;
     private Actor currentActor;
 
-    public ActorHost(BlockingQueue<ActorMessage> queue) {
+    public ActorHost(BlockingQueue<ActorMessage> queue, CountDownLatch terminationLatch) {
         this.queue = requireNonNull(queue);
+        this.terminationLatch = requireNonNull(terminationLatch);
         this.messageConsumer = queue::add;
     }
 
@@ -56,7 +59,11 @@ public class ActorHost implements Runnable {
                 }
             }
         } finally {
-            currentActorHost.remove();
+            try {
+                currentActorHost.remove();
+            } finally {
+                terminationLatch.countDown();
+            }
         }
     }
 }

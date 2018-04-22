@@ -8,7 +8,7 @@ import org.air.java.Future;
 import org.air.java.Promise;
 import org.air.java.Resolver;
 import org.air.java.internal.Actor;
-import org.air.java.internal.ActorReflectiveInvocationMessage;
+import org.air.java.internal.NoopResolver;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -16,20 +16,6 @@ import java.lang.reflect.Modifier;
 import static java.util.Objects.requireNonNull;
 
 public class ActorRemoteRefCglib<T> {
-    private static final Resolver<?> NOOP_RESOLVER = new Resolver<>() {
-        @Override
-        public void resolve(Object value) {
-        }
-
-        @Override
-        public void resolve(Promise<?> promise) {
-        }
-
-        @Override
-        public void reject(Throwable error) {
-        }
-    };
-
     private final ActorSystem actorSystem;
     private final Actor actor;
     private final T proxy;
@@ -89,7 +75,7 @@ public class ActorRemoteRefCglib<T> {
                 resolver = future.getResolver();
             } else {
                 promise = null;
-                resolver = NOOP_RESOLVER;
+                resolver = NoopResolver.INSTANCE;
             }
 
             actor.postMessage(new ActorReflectiveInvocationMessage<>(actor,

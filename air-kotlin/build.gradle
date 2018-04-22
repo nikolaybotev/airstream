@@ -1,3 +1,10 @@
+apply plugin: 'org.jetbrains.kotlin.jvm'
+
+// As per https://stackoverflow.com/a/47669720
+// See also https://discuss.kotlinlang.org/t/kotlin-support-for-java-9-module-system/2499/9
+compileKotlin.destinationDir = compileJava.destinationDir
+jar.duplicatesStrategy = "exclude"
+
 dependencies {
     api project(':air-java')
     implementation "org.jetbrains.kotlin:kotlin-stdlib"

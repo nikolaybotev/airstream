@@ -7,13 +7,19 @@ import org.air.java.Promise;
 import org.air.java.internal.Actor;
 import org.air.java.internal.ActorBootstrapMessage;
 import org.air.java.internal.ActorCreationMessage;
+import org.air.java.internal.ActorExitMessage;
+import org.air.java.internal.FutureImpl;
 import org.air.java.internal.InternalActorSystem;
 
 import javax.annotation.Nullable;
+import java.time.Clock;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
@@ -25,8 +31,8 @@ public class ActorSystemImpl implements InternalActorSystem {
     private final String name;
     private final List<ActorHost> actorHosts;
     private final List<Thread> threads;
+    private final CountDownLatch terminationLatch;
     private final AtomicLong actorCounter = new AtomicLong();
-    private final ThreadLocal<ActorHost> actorHostThreadLocal = new ThreadLocal<>();
 
     public ActorSystemImpl() {
         this(Runtime.getRuntime(), null, 1d);
@@ -51,8 +57,9 @@ public class ActorSystemImpl implements InternalActorSystem {
         ThreadGroup threadGroup = new ThreadGroup(this.name);
         ImmutableList.Builder<ActorHost> actorHostsBuilder = ImmutableList.builder();
         ImmutableList.Builder<Thread> threadsBuilder = ImmutableList.builder();
+        this.terminationLatch = new CountDownLatch(actorHostCount);
         for (int i = 0; i < actorHostCount; i++) {
-            ActorHost actorHost = new ActorHost(new LinkedBlockingQueue<>());
+            ActorHost actorHost = new ActorHost(new LinkedBlockingQueue<>(), terminationLatch);
             actorHostsBuilder.add(actorHost);
             String threadName = String.format("%s-%d", this.name, i);
             threadsBuilder.add(new Thread(threadGroup, actorHost, threadName));
@@ -83,25 +90,35 @@ public class ActorSystemImpl implements InternalActorSystem {
 
     @Override
     public <T> Future<T> newFuture() {
-        // TODO create new future
-        return null;
+        return FutureImpl.newFuture(this, getCurrentActor());
     }
 
     @Override
-    public <T> Promise<T> resolved(T resolution) {
-        // TODO create resolved promise
-        return null;
+    public <T> Promise<T> resolved(@Nullable T value) {
+        return FutureImpl.newResolvedPromise(this, value);
     }
 
     @Override
-    public <T> Promise<T> rejected(Throwable reason) {
-        // TODO create rejected promise
-        return null;
+    public <T> Promise<T> rejected(Throwable error) {
+        return FutureImpl.newRejectedPromise(this, error);
     }
 
     @Override
     public void shutdown() {
-        // TODO system shutdown
+        for (ActorHost actorHost : actorHosts) {
+            Actor stopActor = new ActorImpl(actorHost.getMessageConsumer());
+            actorHost.getMessageConsumer().accept(new ActorExitMessage(stopActor));
+        }
+    }
+
+    @Override
+    public void awaitTermination(Duration duration) throws InterruptedException {
+        terminationLatch.await(duration.toNanos(), TimeUnit.NANOSECONDS);
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override

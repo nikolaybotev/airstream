@@ -1,7 +1,7 @@
 package org.air.java.internal;
 
 public class ActorExitMessage extends AbstractActorMessage {
-    ActorExitMessage(Actor actor) {
+    public ActorExitMessage(Actor actor) {
         super(actor);
     }
 

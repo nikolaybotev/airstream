@@ -1,9 +1,11 @@
 package org.air.java;
 
-public interface Resolver<T> {
-    void resolve(T value);
+import javax.annotation.Nullable;
 
-    void resolve(Promise<? extends T> promise);
+public interface Resolver<T> {
+    void resolve(@Nullable T value);
+
+    void resolve(@Nullable Promise<? extends T> promise);
 
     void reject(Throwable error);
 }
