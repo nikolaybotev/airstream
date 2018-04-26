@@ -1,7 +1,6 @@
 package org.air.java.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.air.java.ActorSystem;
 import org.air.java.Future;
 import org.air.java.Promise;
 import org.air.java.internal.Actor;
@@ -12,9 +11,7 @@ import org.air.java.internal.FutureImpl;
 import org.air.java.internal.InternalActorSystem;
 
 import javax.annotation.Nullable;
-import java.time.Clock;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
@@ -23,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
-import static java.util.Objects.hash;
 import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElse;
 
@@ -59,7 +55,7 @@ public class ActorSystemImpl implements InternalActorSystem {
         ImmutableList.Builder<Thread> threadsBuilder = ImmutableList.builder();
         this.terminationLatch = new CountDownLatch(actorHostCount);
         for (int i = 0; i < actorHostCount; i++) {
-            ActorHost actorHost = new ActorHost(new LinkedBlockingQueue<>(), terminationLatch);
+            ActorHost actorHost = new ActorHost(this, new LinkedBlockingQueue<>(), terminationLatch);
             actorHostsBuilder.add(actorHost);
             String threadName = String.format("%s-%d", this.name, i);
             threadsBuilder.add(new Thread(threadGroup, actorHost, threadName));

@@ -1,5 +1,6 @@
 package org.air.java.impl;
 
+import org.air.java.Promise;
 import org.air.java.Resolver;
 import org.air.java.internal.AbstractActorMessage;
 import org.air.java.internal.Actor;
@@ -41,6 +42,7 @@ public class ActorReflectiveInvocationMessage<T> extends AbstractActorMessage {
             resolver.reject(e);
             return;
         }
-        resolver.resolve(result);
+        //noinspection unchecked
+        resolver.resolve((Promise<? extends T>) result);
     }
 }

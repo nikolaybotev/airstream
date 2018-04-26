@@ -63,7 +63,7 @@ public class ActorRemoteRefCglib<T> {
                 throw new IllegalStateException();
             }
             Class<?> returnType = method.getReturnType();
-            if (returnType != Void.class && returnType != Promise.class) {
+            if (returnType != void.class && returnType != Promise.class) {
                 throw new IllegalStateException();
             }
 

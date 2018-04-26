@@ -5,6 +5,14 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public interface Promise<T> {
+    static<T> Promise<T> resolved(@Nullable T value) {
+        return ActorSystem.getCurrent().resolved(value);
+    }
+
+    static<T> Promise<T> rejected(Throwable error) {
+        return ActorSystem.getCurrent().rejected(error);
+    }
+
     <V> Promise<V> then(@Nullable Function<? super T, ? extends V> consumer,
                         @Nullable Function<Throwable, ? extends V> errorHandler);
 

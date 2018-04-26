@@ -214,7 +214,7 @@ public class FutureImpl<T> implements Future<T> {
 
         void chainTo(Actor actor, Resolver<? super T> resolver) {
             if (resolved) {
-                actor.postMessage(new ResolutionPropagationMessage(actor, resolver));
+                resolver.resolve(value);
             } else if (rejected) {
                 actor.postMessage(new RejectionPropagationMessage<>(actor, resolver));
             } else {

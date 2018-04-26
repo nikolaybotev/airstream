@@ -1,5 +1,6 @@
 package org.air.java.impl;
 
+import org.air.java.ActorSystem;
 import org.air.java.internal.Actor;
 import org.air.java.internal.ActorExitException;
 import org.air.java.internal.ActorMessage;
@@ -13,16 +14,18 @@ import static java.util.Objects.requireNonNull;
 public class ActorHost implements Runnable {
     private static final ThreadLocal<ActorHost> currentActorHost = new ThreadLocal<>();
 
-    static ActorHost getCurrentActorHost() {
+    public static ActorHost getCurrentActorHost() {
         return currentActorHost.get();
     }
 
+    private final ActorSystem actorSystem;
     private final BlockingQueue<ActorMessage> queue;
     private final CountDownLatch terminationLatch;
     private final Consumer<ActorMessage> messageConsumer;
     private Actor currentActor;
 
-    public ActorHost(BlockingQueue<ActorMessage> queue, CountDownLatch terminationLatch) {
+    public ActorHost(ActorSystem actorSystem, BlockingQueue<ActorMessage> queue, CountDownLatch terminationLatch) {
+        this.actorSystem = requireNonNull(actorSystem);
         this.queue = requireNonNull(queue);
         this.terminationLatch = requireNonNull(terminationLatch);
         this.messageConsumer = queue::add;
@@ -30,6 +33,10 @@ public class ActorHost implements Runnable {
 
     public Consumer<ActorMessage> getMessageConsumer() {
         return messageConsumer;
+    }
+
+    public ActorSystem getActorSystem() {
+        return actorSystem;
     }
 
     public Actor getCurrentActor() {
@@ -54,6 +61,8 @@ public class ActorHost implements Runnable {
                     break;
                 } catch (Throwable t) {
                     // TODO Log error
+                    System.err.println(t);
+                    t.printStackTrace();
                 } finally {
                     currentActor = null;
                 }

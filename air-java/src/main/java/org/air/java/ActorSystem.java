@@ -1,5 +1,7 @@
 package org.air.java;
 
+import org.air.java.impl.ActorHost;
+
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -23,6 +25,10 @@ public interface ActorSystem {
     void shutdown();
 
     void awaitTermination(Duration duration) throws InterruptedException;
+
+    static ActorSystem getCurrent() {
+        return ActorHost.getCurrentActorHost().getActorSystem();
+    }
 
     default <T> T newActor(Class<T> clazz) throws NoSuchMethodException, IllegalAccessException {
         Constructor<T> defaultConstructor = clazz.getDeclaredConstructor();
