@@ -23,6 +23,7 @@ public class TestIncrement {
     private static void runTest(final Counter counter, final String name, final int threadCount)
             throws InterruptedException, BrokenBarrierException {
         final CountDownLatch endLatch = new CountDownLatch(threadCount);
+        final int warmUpIterations = 100_000;
         final int iterations = 500_000_000;
         final int perThreadIterations = iterations / threadCount;
 
@@ -32,11 +33,11 @@ public class TestIncrement {
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    for (int a = 0; a < 100_000; a++) {
+                    for (int a = 0; a < warmUpIterations; a++) {
                         runIterations(counter, 5);
                     }
                     for (int a = 0; a < 5; a++) {
-                        runIterations(counter, 100_000);
+                        runIterations(counter, warmUpIterations);
                     }
                     try {
                         startBarrier.await();
@@ -56,7 +57,8 @@ public class TestIncrement {
         endLatch.await();
 
         long elapsedNanos = System.nanoTime() - startNanos;
-        System.out.printf("%40s [%d]: %,d ms%n", name, counter.getValue(), TimeUnit.NANOSECONDS.toMillis(elapsedNanos));
+        assert counter.getValue() == iterations + (threadCount * 10 * warmUpIterations);
+        System.out.printf("%40s: %,d ms%n", name, TimeUnit.NANOSECONDS.toMillis(elapsedNanos));
     }
 
     private static void runIterations(Counter c, int n) {
