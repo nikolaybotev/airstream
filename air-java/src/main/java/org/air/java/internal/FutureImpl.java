@@ -2,7 +2,6 @@ package org.air.java.internal;
 
 import org.air.java.Future;
 import org.air.java.Promise;
-import org.air.java.PromiseFunction;
 import org.air.java.Resolver;
 
 import javax.annotation.Nullable;
@@ -121,8 +120,8 @@ public class FutureImpl<T> implements Future<T> {
         }
 
         @Override
-        public <V> Promise<V> then(@Nullable PromiseFunction<? super T, ? extends V> consumer,
-                                   @Nullable PromiseFunction<Throwable, ? extends V> errorHandler) {
+        public <V> Promise<V> flatThen(@Nullable Function<? super T, Promise<? extends V>> consumer,
+                                       @Nullable Function<Throwable, Promise<? extends V>> errorHandler) {
             if (resolved) {
                 // Resolved
                 if (consumer == null) {
@@ -265,11 +264,11 @@ public class FutureImpl<T> implements Future<T> {
 
         private class ResolutionPromiseListenerMessage<V> extends AbstractActorMessage {
             private final Resolver<V> resolver;
-            private final PromiseFunction<? super T, ? extends V> handler;
+            private final Function<? super T, Promise<? extends V>> handler;
 
             ResolutionPromiseListenerMessage(Actor actor,
                                              Resolver<V> resolver,
-                                             PromiseFunction<? super T, ? extends V> handler) {
+                                             Function<? super T, Promise<? extends V>> handler) {
                 super(actor);
                 this.resolver = requireNonNull(resolver);
                 this.handler = requireNonNull(handler);
@@ -322,11 +321,11 @@ public class FutureImpl<T> implements Future<T> {
 
         private class RejectionPromiseListenerMessage<V> extends AbstractActorMessage {
             private final Resolver<V> resolver;
-            private final PromiseFunction<Throwable, ? extends V> handler;
+            private final Function<Throwable, Promise<? extends V>> handler;
 
             RejectionPromiseListenerMessage(Actor actor,
                                             Resolver<V> resolver,
-                                            PromiseFunction<Throwable, ? extends V> handler) {
+                                            Function<Throwable, Promise<? extends V>> handler) {
                 super(actor);
                 this.resolver = requireNonNull(resolver);
                 this.handler = requireNonNull(handler);

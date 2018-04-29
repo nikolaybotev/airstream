@@ -3,6 +3,7 @@ package org.air.java;
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public interface Promise<T> {
     static<T> Promise<T> resolved(@Nullable T value) {
@@ -16,14 +17,14 @@ public interface Promise<T> {
     <V> Promise<V> then(@Nullable Function<? super T, ? extends V> consumer,
                         @Nullable Function<Throwable, ? extends V> errorHandler);
 
-    <V> Promise<V> then(@Nullable PromiseFunction<? super T, ? extends V> consumer,
-                        @Nullable PromiseFunction<Throwable, ? extends V> errorHandler);
+    <V> Promise<V> flatThen(@Nullable Function<? super T, Promise<? extends V>> consumer,
+                            @Nullable Function<Throwable, Promise<? extends V>> errorHandler);
 
-    default void then(Consumer<? super T> consumer) {
+    default void consume(Consumer<? super T> consumer) {
         then((Function<T, Void>) result -> { consumer.accept(result); return null; }, null);
     }
 
-    default void then(Consumer<? super T> consumer, Consumer<Throwable> errorHandler) {
+    default void consume(Consumer<? super T> consumer, Consumer<Throwable> errorHandler) {
         then((Function<T, Void>) result -> { consumer.accept(result); return null; },
              error -> { errorHandler.accept(error); return null; });
     }
@@ -32,8 +33,16 @@ public interface Promise<T> {
         return then(consumer, null);
     }
 
-    default <V> Promise<V> then(PromiseFunction<? super T, ? extends V> consumer) {
-        return then(consumer, null);
+    default <V> Promise<V> flatThen(Function<? super T, Promise<? extends V>> consumer) {
+        return flatThen(consumer, null);
+    }
+
+    default Promise<Void> then(Runnable action) {
+        return then(x -> { action.run(); return null; }, null);
+    }
+
+    default <V> Promise<V> then(Supplier<V> action) {
+        return then(x -> action.get(), null);
     }
 
     default void trap(Consumer<Throwable> errorHandler) {
@@ -44,7 +53,7 @@ public interface Promise<T> {
         return then(null, errorHandler);
     }
 
-    default <V> Promise<V> trap(PromiseFunction<Throwable, ? extends V> errorHandler) {
-        return then(null, errorHandler);
+    default <V> Promise<V> flatTrap(Function<Throwable, Promise<? extends V>> errorHandler) {
+        return flatThen(null, errorHandler);
     }
 }

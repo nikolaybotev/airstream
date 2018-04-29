@@ -1,24 +1,23 @@
 package org.air.kotlin
 
 import org.air.java.Promise
-import org.air.java.PromiseFunction
 
 inline infix fun <T, V> Promise<T>.flatThen(crossinline consumer: (T?) -> Promise<V>): Promise<V> =
-        this.then(PromiseFunction { consumer(it) }, null)
+        this.flatThen({ consumer(it) }, null)
 
 inline fun <T, V> Promise<T>.flatThen(crossinline consumer: (T?) -> Promise<V>,
                                       crossinline errorHandler: (Throwable?) -> Promise<V>): Promise<V> =
-        this.then(PromiseFunction { consumer(it) }, PromiseFunction { errorHandler(it) })
+        this.flatThen({ consumer(it) }, { errorHandler(it) })
 
 inline infix fun <T, V> Promise<T>.then(crossinline kotlinFunc: (T?) -> V): Promise<V> =
-        this.then(java.util.function.Function { kotlinFunc(it) }, null)
+        this.then({ kotlinFunc(it) }, null)
 
 inline fun <T, V> Promise<T>.then(crossinline kotlinFunc: (T) -> V,
                                   crossinline errorHandler: (Throwable) -> V?): Promise<V> =
-        this.then(java.util.function.Function { kotlinFunc(it) }, java.util.function.Function { errorHandler(it) })
+        this.then({ kotlinFunc(it) }, { errorHandler(it) })
 
 inline infix fun <T, V> Promise<T>.flatTrap(crossinline kotlinFunc: (Throwable?) -> Promise<V>): Promise<V> =
-        this.then(null, PromiseFunction<Throwable, V> { kotlinFunc(it) })
+        this.flatThen(null, { kotlinFunc(it) })
 
 inline infix fun <T, V> Promise<T>.trap(crossinline kotlinFunc: (Throwable) -> V): Promise<V> =
-        this.then(null, java.util.function.Function { kotlinFunc(it) })
+        this.then(null, { kotlinFunc(it) })
