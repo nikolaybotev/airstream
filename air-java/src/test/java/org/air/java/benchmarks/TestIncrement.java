@@ -30,8 +30,11 @@ public class TestIncrement {
         CyclicBarrier startBarrier = new CyclicBarrier(threadCount + 1);
         for (int i = 0; i < threadCount; i++) {
             Thread thread = new Thread(() -> {
-                for (int a = 0; a < 10_000; a++) {
+                for (int a = 0; a < 100_000; a++) {
                     runIterations(counter, 5);
+                }
+                for (int a = 0; a < 5; a++) {
+                    runIterations(counter, 100_000);
                 }
                 try {
                     startBarrier.await();
