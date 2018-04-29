@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Supplier;
 
 public class TestIncrement {
     public static void main(String[] args) throws InterruptedException, BrokenBarrierException {
@@ -21,28 +20,32 @@ public class TestIncrement {
         runTest(new CounterWithLock(), "Two threads with lock", 2);
     }
 
-    private static void runTest(Counter counter, String name, int threadCount)
+    private static void runTest(final Counter counter, final String name, final int threadCount)
             throws InterruptedException, BrokenBarrierException {
-        CountDownLatch endLatch = new CountDownLatch(threadCount);
-        int iterations = 500_000_000;
-        int perThreadIterations = iterations / threadCount;
+        final CountDownLatch endLatch = new CountDownLatch(threadCount);
+        final int iterations = 500_000_000;
+        final int perThreadIterations = iterations / threadCount;
 
-        CyclicBarrier startBarrier = new CyclicBarrier(threadCount + 1);
+        final CyclicBarrier startBarrier = new CyclicBarrier(threadCount + 1);
         for (int i = 0; i < threadCount; i++) {
-            Thread thread = new Thread(() -> {
-                for (int a = 0; a < 100_000; a++) {
-                    runIterations(counter, 5);
+            @SuppressWarnings("Convert2Lambda")
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    for (int a = 0; a < 100_000; a++) {
+                        runIterations(counter, 5);
+                    }
+                    for (int a = 0; a < 5; a++) {
+                        runIterations(counter, 100_000);
+                    }
+                    try {
+                        startBarrier.await();
+                    } catch (InterruptedException | BrokenBarrierException e) {
+                        throw new IllegalStateException(e);
+                    }
+                    runIterations(counter, perThreadIterations);
+                    endLatch.countDown();
                 }
-                for (int a = 0; a < 5; a++) {
-                    runIterations(counter, 100_000);
-                }
-                try {
-                    startBarrier.await();
-                } catch (InterruptedException | BrokenBarrierException e) {
-                    throw new IllegalStateException(e);
-                }
-                runIterations(counter, perThreadIterations);
-                endLatch.countDown();
             });
             thread.start();
         }
@@ -56,23 +59,23 @@ public class TestIncrement {
         System.out.printf("%40s [%d]: %,d ms%n", name, counter.getValue(), TimeUnit.NANOSECONDS.toMillis(elapsedNanos));
     }
 
-    private static void runIterations(Supplier<Runnable> incBare, int iterations) {
-        for (int j = 0; j < iterations; j++) {
-            incBare.get().run();
+    private static void runIterations(Counter c, int n) {
+        for (int j = 0; j < n; j++) {
+            c.increment();
         }
     }
 
-    private interface Counter extends Supplier<Runnable> {
+    private interface Counter {
+        void increment();
         long getValue();
     }
 
     private static class CounterBare implements Counter {
         private long value = 0;
-        private final Runnable task = () -> value++;
 
         @Override
-        public Runnable get() {
-            return task;
+        public void increment() {
+            value++;
         }
 
         @Override
@@ -83,12 +86,11 @@ public class TestIncrement {
 
     private static class CounterWithVolatile implements Counter {
         private volatile long value = 0;
-        @SuppressWarnings("NonAtomicOperationOnVolatileField")
-        private final Runnable task = () -> value++;
 
+        @SuppressWarnings("NonAtomicOperationOnVolatileField")
         @Override
-        public Runnable get() {
-            return task;
+        public void increment() {
+            value++;
         }
 
         @Override
@@ -99,11 +101,10 @@ public class TestIncrement {
 
     private static class CounterWithCAS implements Counter {
         private AtomicLong value = new AtomicLong(0);
-        private final Runnable task = () -> value.incrementAndGet();
 
         @Override
-        public Runnable get() {
-            return task;
+        public void increment() {
+            value.incrementAndGet();
         }
 
         @Override
@@ -115,11 +116,12 @@ public class TestIncrement {
     private static class CounterWithSynchronized implements Counter {
         private final Object lock = new Object();
         private long value = 0;
-        private final Runnable task = () -> { synchronized (lock) { value++; } };
 
         @Override
-        public Runnable get() {
-            return task;
+        public void increment() {
+            synchronized (lock) {
+                value++;
+            }
         }
 
         @Override
@@ -131,11 +133,15 @@ public class TestIncrement {
     private static class CounterWithLock implements Counter {
         private final Lock lock = new ReentrantLock();
         private long value = 0;
-        private final Runnable task = () -> { lock.lock(); try { value++; } finally { lock.unlock(); } };
 
         @Override
-        public Runnable get() {
-            return task;
+        public void increment() {
+            lock.lock();
+            try {
+                value++;
+            } finally {
+                lock.unlock();
+            }
         }
 
         @Override
