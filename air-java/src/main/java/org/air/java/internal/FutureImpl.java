@@ -372,22 +372,21 @@ public class FutureImpl<T> implements Future<T> {
 
     private static class ResolverImpl<T> implements Resolver<T> {
         private final Actor actor;
-        private final WeakReference<PromiseImpl<T>> promiseWeakRef;
+        private PromiseImpl<T> promiseImpl;
 
-        ResolverImpl(Actor actor, PromiseImpl<T> promiseWeakRef) {
+        ResolverImpl(Actor actor, PromiseImpl<T> promiseImpl) {
             this.actor = actor;
-            this.promiseWeakRef = new WeakReference<>(promiseWeakRef);
+            this.promiseImpl = promiseImpl;
         }
 
         @Override
         public void resolve(@Nullable T value) {
-            PromiseImpl<T> promise = promiseWeakRef.get();
-            if (promise == null) {
+            if (promiseImpl == null) {
                 return;
             }
 
-            actor.postMessage(new PromiseResolutionMessage<>(actor, promise, value));
-            promiseWeakRef.clear();
+            actor.postMessage(new PromiseResolutionMessage<>(actor, promiseImpl, value));
+            promiseImpl = null;
         }
 
         @Override
@@ -397,7 +396,7 @@ public class FutureImpl<T> implements Future<T> {
                 return;
             }
 
-            if (promise == promiseWeakRef.get()) {
+            if (promise == promiseImpl) {
                 throw new IllegalStateException("Promise cannot be resolved to itself");
             }
 
@@ -407,13 +406,12 @@ public class FutureImpl<T> implements Future<T> {
 
         @Override
         public void reject(Throwable error) {
-            PromiseImpl<T> promise = promiseWeakRef.get();
-            if (promise == null) {
+            if (promiseImpl == null) {
                 return;
             }
 
-            actor.postMessage(new PromiseRejectionMessage<>(actor, promise, error));
-            promiseWeakRef.clear();
+            actor.postMessage(new PromiseRejectionMessage<>(actor, promiseImpl, error));
+            promiseImpl = null;
         }
     }
 }
