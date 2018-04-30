@@ -20,21 +20,16 @@ public interface Promise<T> {
     <V> Promise<V> flatThen(@Nullable Function<? super T, Promise<? extends V>> consumer,
                             @Nullable Function<Throwable, Promise<? extends V>> errorHandler);
 
-    default void consume(Consumer<? super T> consumer) {
-        then((Function<T, Void>) result -> { consumer.accept(result); return null; }, null);
-    }
-
-    default void consume(Consumer<? super T> consumer, Consumer<Throwable> errorHandler) {
-        then((Function<T, Void>) result -> { consumer.accept(result); return null; },
-             error -> { errorHandler.accept(error); return null; });
-    }
-
     default <V> Promise<V> then(Function<? super T, ? extends V> consumer) {
         return then(consumer, null);
     }
 
     default <V> Promise<V> flatThen(Function<? super T, Promise<? extends V>> consumer) {
         return flatThen(consumer, null);
+    }
+
+    default <V> Promise<V> flatThen(Supplier<Promise<? extends V>> consumer) {
+        return flatThen(result -> consumer.get(), null);
     }
 
     default Promise<Void> then(Runnable action) {
