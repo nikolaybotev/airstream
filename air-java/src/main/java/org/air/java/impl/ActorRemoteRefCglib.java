@@ -1,5 +1,7 @@
 package org.air.java.impl;
 
+import net.sf.cglib.proxy.Callback;
+import net.sf.cglib.proxy.Dispatcher;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
@@ -30,9 +32,12 @@ public class ActorRemoteRefCglib<T> {
         Enhancer e = new Enhancer();
         e.setSuperclass(clazz);
         e.setUseFactory(false);
-        e.setCallback(new Proxy());
+        // Forward all Object method invocations to the Proxy instance.
+        e.setCallbackFilter(m -> m.getDeclaringClass() == Object.class? 0 : 1);
+        Proxy proxy = new Proxy();
+        e.setCallbacks(new Callback[] { (Dispatcher) () -> proxy, proxy});
         //noinspection unchecked
-        proxy = (T) e.create();
+        this.proxy = (T) e.create();
     }
 
     void setTarget(T target) {
@@ -57,7 +62,7 @@ public class ActorRemoteRefCglib<T> {
 
     private class Proxy implements MethodInterceptor {
         @Override
-        public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+        public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) {
             // Validate method
             if (!Modifier.isPublic(method.getModifiers())) {
                 throw new IllegalStateException();
