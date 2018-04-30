@@ -67,7 +67,7 @@ public class TestIncrement {
                     } catch (InterruptedException | BrokenBarrierException e) {
                         throw new IllegalStateException(e);
                     }
-                    runIterations(counter, perThreadIterations);
+                    counter.increment(perThreadIterations);
                     endLatch.countDown();
                 }
             });
@@ -84,14 +84,8 @@ public class TestIncrement {
         return System.nanoTime() - startNanos;
     }
 
-    private static void runIterations(Counter c, int n) {
-        for (int j = 0; j < n; j++) {
-            c.increment();
-        }
-    }
-
     private interface Counter {
-        void increment();
+        void increment(int n);
         long getValue();
     }
 
@@ -99,8 +93,10 @@ public class TestIncrement {
         private long value = 0;
 
         @Override
-        public void increment() {
-            value++;
+        public void increment(int n) {
+            for (int j = 0; j < n; j++) {
+                value++;
+            }
         }
 
         @Override
@@ -114,8 +110,10 @@ public class TestIncrement {
 
         @SuppressWarnings("NonAtomicOperationOnVolatileField")
         @Override
-        public void increment() {
-            value++;
+        public void increment(int n) {
+            for (int j = 0; j < n; j++) {
+                value++;
+            }
         }
 
         @Override
@@ -128,8 +126,10 @@ public class TestIncrement {
         private AtomicLong value = new AtomicLong(0);
 
         @Override
-        public void increment() {
-            value.incrementAndGet();
+        public void increment(int n) {
+            for (int j = 0; j < n; j++) {
+                value.incrementAndGet();
+            }
         }
 
         @Override
@@ -143,9 +143,11 @@ public class TestIncrement {
         private long value = 0;
 
         @Override
-        public void increment() {
-            synchronized (lock) {
-                value++;
+        public void increment(int n) {
+            for (int j = 0; j < n; j++) {
+                synchronized (lock) {
+                    value++;
+                }
             }
         }
 
@@ -160,12 +162,14 @@ public class TestIncrement {
         private long value = 0;
 
         @Override
-        public void increment() {
-            lock.lock();
-            try {
-                value++;
-            } finally {
-                lock.unlock();
+        public void increment(int n) {
+            for (int j = 0; j < n; j++) {
+                lock.lock();
+                try {
+                    value++;
+                } finally {
+                    lock.unlock();
+                }
             }
         }
 
