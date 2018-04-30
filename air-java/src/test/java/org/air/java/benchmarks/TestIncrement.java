@@ -1,5 +1,6 @@
 package org.air.java.benchmarks;
 
+import java.util.Random;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
@@ -10,21 +11,49 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class TestIncrement {
     public static void main(String[] args) throws InterruptedException, BrokenBarrierException {
-        runTest(new CounterBare(), "Single thread", 1);
-        runTest(new CounterWithVolatile(), "Single thread with volatile", 1);
-        runTest(new CounterWithCAS(), "Single thread with CAS", 1);
-        runTest(new CounterWithSynchronized(), "Single thread with synchronized", 1);
-        runTest(new CounterWithLock(), "Single thread with lock", 1);
-        runTest(new CounterWithCAS(), "Two threads with CAS", 2);
-        runTest(new CounterWithSynchronized(), "Two threads with synchronized", 2);
-        runTest(new CounterWithLock(), "Two threads with lock", 2);
+        // Warm up
+        Random rand = new Random();
+        long totalElapsed = 0;
+        for (int i = 0; i < 5; i++) {
+            totalElapsed += warmUp(rand.nextInt(1_000) + 10_000);
+        }
+        for (int i = 0; i < 10_000; i++) {
+            totalElapsed += warmUp(rand.nextInt(4) + 1);
+        }
+        System.out.printf("Warmed up in %,d ms.%n%n", totalElapsed);
+
+        runTestAndReport(new CounterBare(), "Single thread", 1);
+        runTestAndReport(new CounterWithVolatile(), "Single thread with volatile", 1);
+        runTestAndReport(new CounterWithCAS(), "Single thread with CAS", 1);
+        runTestAndReport(new CounterWithSynchronized(), "Single thread with synchronized", 1);
+        runTestAndReport(new CounterWithLock(), "Single thread with lock", 1);
+        runTestAndReport(new CounterWithCAS(), "Two threads with CAS", 2);
+        runTestAndReport(new CounterWithSynchronized(), "Two threads with synchronized", 2);
+        runTestAndReport(new CounterWithLock(), "Two threads with lock", 2);
     }
 
-    private static void runTest(final Counter counter, final String name, final int threadCount)
+    private static long warmUp(int iterations) throws InterruptedException, BrokenBarrierException {
+        long totalElapsed = 0;
+        totalElapsed += runTest(new CounterBare(), 1, iterations);
+        totalElapsed += runTest(new CounterWithVolatile(), 1, iterations);
+        totalElapsed += runTest(new CounterWithCAS(), 1, iterations);
+        totalElapsed += runTest(new CounterWithSynchronized(), 1, iterations);
+        totalElapsed += runTest(new CounterWithLock(), 1, iterations);
+        totalElapsed += runTest(new CounterWithCAS(), 2, iterations);
+        totalElapsed += runTest(new CounterWithSynchronized(), 2, iterations);
+        totalElapsed += runTest(new CounterWithLock(), 2, iterations);
+        return totalElapsed;
+    }
+
+    private static void runTestAndReport(Counter counter, String name, int threadCount)
+            throws BrokenBarrierException, InterruptedException {
+        long elapsedNanos = runTest(counter, threadCount, 500_000_000);
+        System.out.printf("%40s: %,d ms%n", name, TimeUnit.NANOSECONDS.toMillis(elapsedNanos));
+    }
+
+    private static long runTest(final Counter counter, final int threadCount, final int iterations)
             throws InterruptedException, BrokenBarrierException {
         final CountDownLatch endLatch = new CountDownLatch(threadCount);
-        final int warmUpIterations = 100_000;
-        final int iterations = 500_000_000;
         final int perThreadIterations = iterations / threadCount;
 
         final CyclicBarrier startBarrier = new CyclicBarrier(threadCount + 1);
@@ -33,12 +62,6 @@ public class TestIncrement {
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    for (int a = 0; a < warmUpIterations; a++) {
-                        runIterations(counter, 5);
-                    }
-                    for (int a = 0; a < 5; a++) {
-                        runIterations(counter, warmUpIterations);
-                    }
                     try {
                         startBarrier.await();
                     } catch (InterruptedException | BrokenBarrierException e) {
@@ -56,9 +79,9 @@ public class TestIncrement {
         long startNanos = System.nanoTime();
         endLatch.await();
 
-        long elapsedNanos = System.nanoTime() - startNanos;
-        assert counter.getValue() == iterations + (threadCount * 10 * warmUpIterations);
-        System.out.printf("%40s: %,d ms%n", name, TimeUnit.NANOSECONDS.toMillis(elapsedNanos));
+        assert counter.getValue() == iterations;
+
+        return System.nanoTime() - startNanos;
     }
 
     private static void runIterations(Counter c, int n) {
